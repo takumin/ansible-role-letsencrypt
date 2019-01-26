@@ -1,0 +1,12 @@
+#
+# {{ ansible_managed }}
+#
+
+# Certbot for Let's Encrypt
+{% if letsencrypt_repository is defined and letsencrypt_repository != '' %}
+deb     {{ letsencrypt_repository }} {{ ansible_distribution_release }} main
+deb-src {{ letsencrypt_repository }} {{ ansible_distribution_release }} main
+{% else %}
+deb     http://ppa.launchpad.net/certbot/certbot/ubuntu {{ ansible_distribution_release }} main
+deb-src http://ppa.launchpad.net/certbot/certbot/ubuntu {{ ansible_distribution_release }} main
+{% endif %}

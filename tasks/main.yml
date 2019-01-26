@@ -1,0 +1,93 @@
+---
+- block:
+  - include_vars: '{{ item }}'
+    with_first_found:
+    - '{{ ansible_distribution.lower() }}.yml'
+    - '{{ ansible_os_family.lower() }}.yml'
+    - '{{ ansible_system.lower() }}.yml'
+    - 'default.yml'
+
+  - block:
+    - name: 'keyring directory'
+      file:
+        state: 'directory'
+        path:  '/etc/apt/additional.gpg.d'
+        owner: '{{ letsencrypt.owner }}'
+        group: '{{ letsencrypt.group }}'
+        mode:  '0755'
+
+    - name: 'download keyring'
+      get_url:
+        url:  'https://sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x7BF576066ADA65728FC7E70A8C47BE8E75BCA694'
+        dest: '/etc/apt/additional.gpg.d/ppa-certbot.gpg'
+        mode: '0444'
+      environment: '{{ proxy_environment | default({}) }}'
+
+    - name: 'additional keyring'
+      apt_key:
+        file: '/etc/apt/additional.gpg.d/ppa-certbot.gpg'
+        id:   '7BF576066ADA65728FC7E70A8C47BE8E75BCA694'
+
+    - name: 'additional repository'
+      template:
+        src:   'apt.list.j2'
+        dest:  '/etc/apt/sources.list.d/certbot.list'
+        owner: '{{ letsencrypt.owner }}'
+        group: '{{ letsencrypt.group }}'
+        mode:  '0444'
+      register: apt_repo
+
+    - name: 'repository update'
+      apt: update_cache=yes
+      when: apt_repo.changed
+
+    # block
+    when: ansible_distribution == 'Ubuntu'
+
+  - name: 'package installed: {{ letsencrypt.package }}'
+    package:
+      name:  '{{ letsencrypt.package }}'
+      state: present
+
+  - name: 'require directory'
+    file:
+      state: 'directory'
+      path:  '{{ item.path }}'
+      owner: '{{ letsencrypt.owner }}'
+      group: '{{ letsencrypt.group }}'
+      mode:  '{{ item.mode }}'
+    with_items:
+    - path: '{{ letsencrypt.conf_dir }}'
+      mode: '0755'
+    - path: '{{ letsencrypt.conf_dir }}/accounts'
+      mode: '0700'
+    - path: '{{ letsencrypt.conf_dir }}/archive'
+      mode: '0700'
+    - path: '{{ letsencrypt.conf_dir }}/csr'
+      mode: '0755'
+    - path: '{{ letsencrypt.conf_dir }}/keys'
+      mode: '0700'
+    - path: '{{ letsencrypt.conf_dir }}/live'
+      mode: '0700'
+    - path: '{{ letsencrypt.conf_dir }}/renewal'
+      mode: '0755'
+    - path: '{{ letsencrypt.conf_dir }}/renewal-hooks'
+      mode: '0755'
+    - path: '{{ letsencrypt.conf_dir }}/renewal-hooks/deploy'
+      mode: '0755'
+    - path: '{{ letsencrypt.conf_dir }}/renewal-hooks/post'
+      mode: '0755'
+    - path: '{{ letsencrypt.conf_dir }}/renewal-hooks/pre'
+      mode: '0755'
+    - path: '{{ letsencrypt.work_dir }}'
+      mode: '0755'
+    - path: '{{ letsencrypt.log_dir }}'
+      mode: '0755'
+
+  # block
+  tags:
+  - web
+  - nginx
+  - ssl
+  - tls
+  - letsencrypt

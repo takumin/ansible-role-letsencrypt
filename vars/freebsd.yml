@@ -1,0 +1,9 @@
+---
+letsencrypt_vars:
+  package:  'security/py-certbot'
+  bin_path: '/usr/local/bin/certbot'
+  conf_dir: '/usr/local/etc/certbot'
+  work_dir: '/usr/local/www/certbot'
+  log_dir:  '/var/log/certbot'
+  owner:    'root'
+  group:    'wheel'

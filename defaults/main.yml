@@ -1,0 +1,11 @@
+---
+letsencrypt_repository: 'http://ppa.launchpad.net/certbot/certbot/ubuntu'
+letsencrypt:
+  package:  '{{ letsencrypt_vars.package }}'
+  bin_path: '{{ letsencrypt_vars.bin_path }}'
+  conf_dir: '{{ letsencrypt_vars.conf_dir }}'
+  work_dir: '{{ letsencrypt_vars.work_dir }}'
+  log_dir:  '{{ letsencrypt_vars.log_dir }}'
+  contact:  'webmaster@{{ ansible_domain }}'
+  owner:    '{{ letsencrypt_vars.owner }}'
+  group:    '{{ letsencrypt_vars.group }}'
